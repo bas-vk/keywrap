@@ -8,7 +8,7 @@ package keywrap
 type WrapAlgorithm uint
 
 const (
-	RFC3394 WrapAlgorithm = iota // import github.com/basvk/keywrap/rfc3394
+	RFC3394 WrapAlgorithm = iota // import github.com/bas-vk/keywrap/rfc3394
 	maxAlgorithms
 )
 
