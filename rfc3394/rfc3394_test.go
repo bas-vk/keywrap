@@ -92,7 +92,49 @@ func TestKeyUnWrap_Vector128(t *testing.T) {
 			hex.Encode(expected, tc.Expected)
 			hex.Encode(got, plaintext)
 
-			t.Errorf("UnWrap 128 failed, expected[%s] got[%s]", expected, got)
+			t.Errorf("Unwrap 128 failed, expected[%s] got[%s]", expected, got)
+		}
+	} else {
+		t.Errorf(err.Error())
+	}
+}
+
+func TestKeyWrapAndUnwrap_Vector128(t *testing.T) {
+
+	tc, err := buildTestCase(
+		[]byte("00112233445566778899AABBCCDDEEFF0123456789ABCDEF"),
+		[]byte("28FD2E4C5A755919D644D0E727291EDE8AB4A2C83CEBFF109BB49E86795F6ADF"))
+
+	if err != nil {
+		t.Errorf("Error during test case setup %s\n", err)
+	}
+
+	keyWrap, _ := New(key128)
+
+	if ciphertext, err := keyWrap.Wrap(tc.Input); err == nil {
+		if bytes.Equal(tc.Expected, ciphertext) {
+
+			if plaintext, err := keyWrap.Unwrap(ciphertext); err == nil {
+				if !bytes.Equal(tc.Input, plaintext) {
+					expected := make([]byte, hex.EncodedLen(len(tc.Input)))
+					got := make([]byte, hex.EncodedLen(len(plaintext)))
+
+					hex.Encode(expected, tc.Input)
+					hex.Encode(got, plaintext)
+
+					t.Errorf("Unwrap 128 failed, expected[%s] got[%s]", expected, got)
+				}
+			} else {
+				t.Errorf(err.Error())
+			}
+		} else {
+			expected := make([]byte, hex.EncodedLen(len(tc.Expected)))
+			got := make([]byte, hex.EncodedLen(len(ciphertext)))
+
+			hex.Encode(expected, tc.Expected)
+			hex.Encode(got, ciphertext)
+
+			t.Errorf("Wrap 128 failed, expected[%s] got[%s]", expected, got)
 		}
 	} else {
 		t.Errorf(err.Error())

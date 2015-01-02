@@ -24,6 +24,7 @@ type rfc3394KeyWrap struct {
 }
 
 // New returns a new key wrapper which uses AES as the primitive building block.
+// The given key must be 128, 192 or 256 bits long.
 func New(key []byte) (keywrap.KeyWrapper, error) {
 
 	l := len(key)
@@ -37,9 +38,13 @@ func New(key []byte) (keywrap.KeyWrapper, error) {
 	return &akw, nil
 }
 
-// Wrap the given keydata with the given key. The keydata must be a multiple of
-// 64 bits, the key must be 128, 192 or 256 bits.
+// Wrap the given keydata. The keydata must be a multiple of 64 bits.
 func (w *rfc3394KeyWrap) Wrap(keydata []byte) (ciphertext []byte, err error) {
+
+	if len(keydata)%8 != 0 {
+		return nil, errors.New("Keydata must be a multiply of 64 bits")
+	}
+
 	w.initializeForWrap(keydata)
 
 	if err = w.calculateIntermediateValuesForWrap(); err == nil {
@@ -49,9 +54,14 @@ func (w *rfc3394KeyWrap) Wrap(keydata []byte) (ciphertext []byte, err error) {
 	return
 }
 
-// Unwrap the given ciphertext with the given key. It will perform an integrity
+// Unwrap the given ciphertext. It will perform an integrity
 // check afterwards to determine if the keydata wasn't altered.
 func (w *rfc3394KeyWrap) Unwrap(ciphertext []byte) (keydata []byte, err error) {
+
+	if len(ciphertext)%8 != 0 {
+		return nil, errors.New("Ciphertext must be a multiply of 64 bits")
+	}
+
 	w.initializeForUnwrap(ciphertext)
 
 	if err = w.calculateIntermediateValuesForUnwrap(); err != nil {
@@ -83,9 +93,6 @@ For i = 1 to n
 */
 func (w *rfc3394KeyWrap) initializeForWrap(plaintext []byte) {
 	w.n = len(plaintext) / 8
-	if len(plaintext)%8 > 0 {
-		w.n += 1
-	}
 
 	w.iv = make([]byte, 8)
 	for i := 0; i < 8; i++ {
